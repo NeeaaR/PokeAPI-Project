@@ -8,11 +8,13 @@ import VueAxios from 'vue-axios'
 import BootstrapVue from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import moment from 'moment'
 
 Vue.config.productionTip = false
 Vue.use(BootstrapVue)
 Vue.use(VueAxios)
 Vue.use(axios)
+Vue.use(moment)
 Vue.prototype.$http = axios;
 // Vue.use(Vuex)
 // Vue.use(VueRouter)

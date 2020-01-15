@@ -1,31 +1,32 @@
 <template>
 <div>
-    <div v-if="evolution_3.id == null && evolution_1.id != null " class="evolution">
-        <div>
-            <p>{{evolution_name_1}}</p>
-            <a :href="$router.resolve('/pokemon/' + evolution_1.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_1.id)}.png`" style="width: 40%;"></a>
+        <div v-if="evolution_3.id != null" class="evolution">
+            <div>
+                <p>{{evolution_name_1}}</p>
+                <a :href="$router.resolve('/pokemon/' + evolution_1.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_1.id)}.png`" style="width: 60%;"></a>
+            </div>
+            <div>
+                <p>{{evolution_name_2}}</p>
+                <a :href="$router.resolve('/pokemon/' + evolution_2.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_2.id)}.png`" style="width: 60%;"></a>
+            </div>
+            <div>
+                <p class="img-width">{{evolution_name_3}}</p>
+                <a :href="$router.resolve('/pokemon/' + evolution_3.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_3.id)}.png`" style="width: 60%;"></a>
+            </div>
         </div>
-        <div>
-            <p>{{evolution_name_2}}</p>
-            <a :href="$router.resolve('/pokemon/' + evolution_2.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_2.id)}.png`" style="width: 40%;"></a>
-        </div>
-    </div>
-    <div v-else-if="evolution_3.id != null " class="evolution">
-        <div>
-            <p>{{evolution_name_1}}</p>
-            <a :href="$router.resolve('/pokemon/' + evolution_1.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_1.id)}.png`" style="width: 60%;"></a>
-        </div>
-        <div>
-            <p>{{evolution_name_2}}</p>
-            <a :href="$router.resolve('/pokemon/' + evolution_2.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_2.id)}.png`" style="width: 60%;"></a>
-        </div>
-        <div>
-            <p class="img-width">{{evolution_name_3}}</p>
-            <a :href="$router.resolve('/pokemon/' + evolution_3.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_3.id)}.png`" style="width: 60%;"></a>
-        </div>
+        
+        <div v-else-if="evolution_1.id != null && evolution_3.id == null" class="evolution">
+            <div>
+                <p>{{evolution_name_1}}</p>
+                <a :href="$router.resolve('/pokemon/' + evolution_1.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_1.id)}.png`" style="width: 40%;"></a>
+            </div>
+            <div>
+                <p>{{evolution_name_2}}</p>
+                <a :href="$router.resolve('/pokemon/' + evolution_2.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_2.id)}.png`" style="width: 40%;"></a>
+            </div>
         </div>
 
-        <div v-if="this.id >= 133 && this.id <= 140" class="evolution">
+        <div v-if="this.id >= 133 && this.id <= 136 || this.id == 196 || this.id == 197 || this.id == 470 || this.id == 471 || this.id == 700" class="evolution">
         <div>
             <p>{{evolution_name_1}}</p>
             <a :href="$router.resolve('/pokemon/' + evolution_1.id).href"><img class="img-fluid" :src="`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${padLeft(evolution_1.id)}.png`" style="width: 60%;"></a>
@@ -61,7 +62,7 @@
         </div>
 
         <div v-if="evolution_1.id == null ">
-            <p>{{PokemonName}} n'a pas d'évolution</p>
+            <p>n'a pas d'évolution</p>
         </div>      
 </div>
 </template>
@@ -94,7 +95,7 @@ export default {
 		pokemons: [],
     evolution_id: null,
     evolutionURL:'https://pokeapi.co/api/v2/pokemon-species/',
-		evoli: [133,134,135,136,137,138,139,140],
+		evoli: [133,134,135,136,137,138,139],
 		evolutions: [],
         evolution_1: [],
         evolution_2: [],
@@ -118,16 +119,18 @@ export default {
         padLeft(num, by = 3) {
 		return ("0".repeat(by) + num).substr(-3)
         },
+        //Ce code permet de récupérer les évolutions du Pokémon à partir de la "chain" qui renvoie toutes les évolutions du Pokémon
             async getPokemonEvolution(){
 			const response = await axios.get('https://pokeapi.co/api/v2/pokemon-species/' + this.id)
 			const url = response.data.evolution_chain.url
 			const evolution_url = await axios.get(url)
 			const evolution_1 = await axios.get('https://pokeapi.co/api/v2/pokemon/' + evolution_url.data.chain.species.name)
-			const evolution_2 = await axios.get('https://pokeapi.co/api/v2/pokemon/' + evolution_url.data.chain.evolves_to[0].species.name)
+            const evolution_2 = await axios.get('https://pokeapi.co/api/v2/pokemon/' + evolution_url.data.chain.evolves_to[0].species.name)
+        //Ici on vérifie s'il y a une troisième évolution
 		if(evolution_url.data.chain.evolves_to[0].evolves_to[0] == undefined){
 			const [evo_1,evo_2] = await Promise.all([evolution_1,evolution_2])
 			this.evolution_1 = evo_1.data
-			this.evolution_2 = evo_2.data
+            this.evolution_2 = evo_2.data
 			}
 		else{
 			const evolution_3 = await axios.get('https://pokeapi.co/api/v2/pokemon/' + evolution_url.data.chain.evolves_to[0].evolves_to[0].species.name)
@@ -135,8 +138,9 @@ export default {
 			this.evolution_1 = evo_1.data
             this.evolution_2 = evo_2.data
             this.evolution_3 = evo_3.data
-		}
+        }
     },
+    //Ce code permet de récupérer la traduction de chaque évolution
 	async getPokemonEvolutionName(){
         const response = await axios.get('https:///pokeapi.co/api/v2/pokemon-species/' + this.id)
 		const url = response.data.evolution_chain.url
@@ -156,8 +160,9 @@ export default {
             this.evolution_name_3 = evo_3.data.names[6].name
       }
     },
+    //Ces deux fonctions sont spécifiques à Evoli qui possède 8 évolutions
     async getEvoliEvolutions(){
-		if(this.evolutionURL + this.evoli){
+		if(this.id >= 133 && this.id <= 136 || this.id == 196 || this.id == 197 || this.id == 470 || this.id == 471 || this.id == 700){
 			const response = await axios.get(this.evolutionURL + this.id)
 			const url = response.data.evolution_chain.url
 			const evolution_url = await axios.get(url)
@@ -176,7 +181,7 @@ export default {
 	}
 	},
 	async getEvoliEvolutionsName(){
-		if(this.evolutionURL + this.evoli){
+		if(this.id >= 133 && this.id <= 136 || this.id == 196 || this.id == 197 || this.id == 470 || this.id == 471 || this.id == 700){
 			const response = await axios.get(this.evolutionURL + this.id)
 			const url = response.data.evolution_chain.url
 			const evolution_url = await axios.get(url)

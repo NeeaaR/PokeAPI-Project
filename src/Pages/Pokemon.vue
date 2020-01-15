@@ -23,7 +23,7 @@
                     <p class="legende">CATEGORIE</p>
                     <p>{{Category}}</p><br>
                     <p class="legende">STATS</p>
-                    <div v-for="stats in PokemonData.stats" :key="stats" id="test">
+                    <div v-for="stats in PokemonData.stats" :key="stats.id" id="test">
                         <p>{{stats.stat.name}}</p>
                         <div class="progress">
                             <div class="progress-bar bg-warning" role="progressbar" v-bind:style="{ width: stats.base_stat + '%' }" style="color:black;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">{{stats.base_stat}}</div>
@@ -92,6 +92,8 @@ p {
 }
 
 .legende {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
     text-decoration: underline rgb(254, 211, 65) 3px;
 }
 
@@ -131,7 +133,7 @@ export default {
           .then(response => {
           this.PokemonData = response.data
       })
-      },
+      },//Ce code récupère la traduction des noms, la catégorie mais également l'url de l'evolution-chain du Pokémon afin de connaitre toutes les évolutions du Pokémon
        getPokemonspecies() {
           axios
           .get("https://pokeapi.co/api/v2/pokemon-species/" + this.id)
@@ -150,13 +152,19 @@ export default {
           this.evolution_id = response.data.evolution_chain
       })
       },
+    //Cette fonction sert uniquement pour récupérer les différentes descriptions du Pokémon, car l'API répertorie toutes les descriptions de nombreuses langues mais également des différentes versions
+    //Cela fait que des fois pour une même langue, on peut se retrouver avec une même description de Pokemon car la version du jeu est différente.
     async getPokemonDescription(){
         const response = await axios.get('https://pokeapi.co/api/v2/pokemon-species/' + this.id)
         const description = response.data.flavor_text_entries
         const description2 = description.filter(description => description.language.name == "fr")
         const distinctdescription = [...new Set(description2.map(item => item.flavor_text.replace(/\n|\r/g,' ')))]
+        //const distinctdescription permet d'éliminer les doublons et cela nécessitait un .replace() afin d'enlever les retours à la ligne
+        //qui des fois laissait passer des doublons car la seule différence entre les deux descriptions, était le retour à la ligne placer à un endroit différent.
         this.description = distinctdescription 
         },
+    
+    //Ce code récupère les données du Pokémon, pour ensuite accéder à l'url des différentes stats du Pokémon (vitesse,hp,attaquen,etc...) et ainsi récupérer la traduction des noms des stats.
     async getPokemonStats() {
 	const response = await axios.get("https://pokeapi.co/api/v2/pokemon/" + this.id);
 	const stats = response.data.stats
@@ -171,7 +179,8 @@ export default {
     for(let i = 0; i<stats_translated.length; i++){
         this.PokemonData.stats[i].stat.name = stats_translated[i]
     }
-},
+},  
+    //Même code que dans le Pokedex, simplifié car ici on a besoin de récupérer le(s) type(s) d'un seul Pokémon au lieu de 20 pour une page du Pokedex
 	async getPokemonTypes(){
 		const response = await axios.get("https://pokeapi.co/api/v2/pokemon/" + this.id)
 		const types = response.data.types

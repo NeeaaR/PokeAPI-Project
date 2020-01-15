@@ -7,7 +7,7 @@
 					<li>
 						<router-link v-bind:to="'/pokedex'" class="titles-nav">Pokedex</router-link>
 						<router-link v-bind:to="'/generation'" class="titles-nav">Générations</router-link>
-						<router-link v-bind:to="'/team'" class="titles-nav">Team</router-link>
+						<router-link v-bind:to="'/monpokemon'" class="titles-nav">Mon Pokemon</router-link>
 					</li>
 				</ul>
 			</nav>
@@ -22,13 +22,22 @@
 					<li>
 						<router-link v-bind:to="'/pokedex'" class="titles-nav">Pokedex</router-link>
 						<router-link v-bind:to="'/generation'" class="titles-nav">Générations</router-link>
-						<router-link v-bind:to="'/team'" class="titles-nav">Team</router-link>
+						<router-link v-bind:to="'/monpokemon'" class="titles-nav">Mon Pokemon</router-link>
 					</li>
 				</ul>
 			</nav><br><br>
 			<h2>Liste des Pokemons</h2><br><br>
+      <div class="container">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" v-model="search" placeholder="Rechercher un pokémon" aria-label="Recipient's username" aria-describedby="basic-addon2">
+        <div class="input-group-append">
+          <button class="btn btn-outline-dark" type="button">Recherche</button>
+        </div>
+      </div>
+</div>
+      <br>
 			<div id="app">
-				<div id="case" v-for="pokemon in pokemons" :key="pokemon.id">
+				<div id="case" v-for="pokemon in filteredList" :key="pokemon.id">
 					<li id="link"><router-link v-bind:to="'/pokemon/' + pokemon.id" tag="li">
 					<div class="infos"><br>
 						<h4>#{{pokemon.id}}</h4>
@@ -45,8 +54,10 @@
 					</div>
 				</div> 
 			</div><br>
-      <button type="button" v-on:click="previous()" class="btn btn-primary btn-lg">Previous</button>
-      <button type="button" v-on:click="next()" class="btn btn-dark btn-lg">Next</button>
+      <div class="container text-center">
+        <button type="button" v-on:click="previous()" v-if="this.previousURL != null" class="btn btn-danger btn-lg">Précédent</button>
+        <button type="button" v-on:click="next()" class="btn btn-primary btn-lg ml-5">Suivant</button>
+      </div>
 			<a href="#top"><img :src="require(`@/assets/img/top_button.png`)" alt="" id="top-button"></a>
 			<br><br><br>
 		</div>
@@ -59,6 +70,7 @@ export default {
     name: 'app',
     data() {
         return{
+    search: '',
 		pokemons: [],
 		info: null,
 		loading: true,
@@ -76,73 +88,87 @@ export default {
 	methods: {
 	padLeft(num, by = 3) {
 		return ("0".repeat(by) + num).substr(-3)
-	},
-    async getPokemon(initURL,initSpeciesURL) {
-      const response = await this.$http.get(initURL);
-      window.console.log(initURL)
-      this.nextURL = response.data.next
-	this.previousURL = response.data.previous
-      this.pokemons = await Promise.all(response.data.results.map(async ({ url }) => {
-        const pokemon = await this.$http.get(url);
-        return pokemon.data
-      }));
-      const response2 = await axios.get(initSpeciesURL)
-      this.nextURL_species = response2.data.next
-      this.previousURL_species = response2.data.previous
-			const pokemons2 = await Promise.all(response2.data.results.map(async ({url}) =>{
-				const pokemon = await axios.get(url)
-				return pokemon.data.names
-      }))
-			const pokemon_names = await Promise.all(pokemons2.map(async pokemon_names =>{
-				const pokemon_name = pokemon_names.filter(pokemon_name =>pokemon_name.language.name == "fr")
-				return pokemon_name
-      }))
-      for(let i = 0;i<pokemon_names.length;i++){
-        this.pokemons[i].name = pokemon_names[i][0].name
-      }
   },
-		async getPokemonTypes(initURL){
-      const response = await axios.get(initURL)
-      this.nextURL = response.data.next
+  //Cette fonction permet de récupérer toutes les informations de l'urtl https://pokeapi.co/api/v2/pokemon/ des pokémon
+  async getPokemon(initURL,initSpeciesURL) {
+    const response = await this.$http.get(initURL);
+    this.nextURL = response.data.next
 	this.previousURL = response.data.previous
-			const pokemons = await Promise.all(response.data.results.map(async ({url}) =>{
-				const pokemon = await axios.get(url)
-				return pokemon.data.types
+    this.pokemons = await Promise.all(response.data.results.map(async ({ url }) => {
+      const pokemon = await this.$http.get(url);
+      return pokemon.data
+    }));
+  //Afin de pouvoir traduire en Français (ou autre langues), les noms des Pokémon, les traductions se trouvent dans https://pokeapi.co/api/v2/pokemon-species/
+    const response2 = await axios.get(initSpeciesURL)
+    this.nextURL_species = response2.data.next
+    this.previousURL_species = response2.data.previous
+		const pokemons2 = await Promise.all(response2.data.results.map(async ({url}) =>{
+			const pokemon = await axios.get(url)
+			return pokemon.data.names
+    }))
+		const pokemon_names = await Promise.all(pokemons2.map(async pokemon_names =>{
+			const pokemon_name = pokemon_names.filter(pokemon_name =>pokemon_name.language.name == "fr")
+			return pokemon_name
+    }))
+    for(let i = 0;i<pokemon_names.length;i++){
+      this.pokemons[i].name = pokemon_names[i][0].name
+    }
+  },
+  //Cette fonction renvoie la traduction des Types de chaque Pokemon que j'affiche dans mon pokedex, je remplace directement les noms des types en anglais, par celle en français 
+	async getPokemonTypes(initURL){
+    const response = await axios.get(initURL)
+    this.nextURL = response.data.next
+	this.previousURL = response.data.previous
+		const pokemons = await Promise.all(response.data.results.map(async ({url}) =>{
+			const pokemon = await axios.get(url)
+			return pokemon.data.types
+    }))
+		const types_translations = await Promise.all(pokemons.map(async types =>{
+			const types_url = await Promise.all(types.map(async types_url =>{
+				const url = await axios.get(types_url.type.url)
+				return url.data.names
 			}))
-			const types_translations2 = await Promise.all(pokemons.map(async types =>{
-				const types_url = await Promise.all(types.map(async types_url =>{
-					const url = await axios.get(types_url.type.url)
-					return url.data.names
-				}))
-				return types_url
+			return types_url
+		}))
+		const types_translated = await Promise.all(types_translations.map(async types =>{
+			const types_display = await Promise.all(types.map(async types =>{
+				return types.filter(type=> type.language.name == "fr")
 			}))
-			const types_translated2 = await Promise.all(types_translations2.map(async types =>{
-				const types_display2 = await Promise.all(types.map(async types =>{
-					return types.filter(type=> type.language.name == "fr")
-				}))
-				return types_display2
-      }))
-      for(let i = 0; i<types_translated2.length; i++){
-        for(let x = 0; x <=types_translated2[i].length; x++){
-      this.pokemons[i].types[0].type.name = types_translated2[i][0][0].name
-      if(this.pokemons[i].types[1] != null){
-        this.pokemons[i].types[1].type.name = types_translated2[i][1][0].name}}} 
+			return types_display
+    }))
+    for(let i = 0; i<types_translated.length; i++){
+      for(let x = 0; x <=types_translated[i].length; x++){
+    this.pokemons[i].types[0].type.name = types_translated[i][0][0].name
+    if(this.pokemons[i].types[1] != null){
+      this.pokemons[i].types[1].type.name = types_translated[i][1][0].name}}} 
     },
-    next(){
+  next(){
+
   this.getPokemon(this.nextURL,this.nextURL_species)
   this.getPokemonTypes(this.nextURL)
+
 	},
 	previous(){
+
 	this.getPokemon(this.previousURL,this.previousURL_species)
   this.getPokemonTypes(this.previousURL)
+
   }
   },
   mounted() {
+
   this.getPokemon(this.initURL,this.PokemonSpecies_url)
   this.getPokemonTypes(this.initURL)
 
   },
-    
+  computed: {
+    //Cette fonction correspond à la barre de recherche sauf que malheureusement vu qu'on génère 20 pokémon par page, là recherche ce fait uniquement sur cette page.
+    filteredList: function() {
+      return this.pokemons.filter((pokemon) => {
+        return pokemon.name.toLowerCase().includes(this.search.toLowerCase());
+      })
+    }
+  }  
 }
 </script>
 
@@ -184,6 +210,19 @@ h1 {
 	font-family: 'Tomorrow', sans-serif;
 }
 
+#btn {
+  position: absolute;
+  top: 48vh;
+  left: 18vw;
+  background-color:rgb(58, 93, 158);
+  padding: 10px;
+  font-size: 17px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  color: white;
+}
+
 .button {
   position: absolute;
   top: 48vh;
@@ -196,6 +235,10 @@ h1 {
   text-decoration: none;
   color: white;
   
+}
+
+#buttons {
+  text-align: center;
 }
 
 li {

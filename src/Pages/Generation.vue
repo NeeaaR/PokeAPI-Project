@@ -4,11 +4,11 @@
                 <nav class="navbar">
                         <ul>
                           <li><a :href="$router.resolve('/').href"><img :src="require(`@/assets/img/logo-pokemon.png`)" alt="" class="logo"></a></li>
-                            <li>
-                                <router-link v-bind:to="'/pokedex'" class="titles-nav">Pokedex</router-link>
-                                <router-link v-bind:to="'/generation'" class="titles-nav">Générations</router-link>
-                                <router-link v-bind:to="'/team'" class="titles-nav">Team</router-link>
-                            </li>
+                          <li>
+                              <router-link v-bind:to="'/pokedex'" class="titles-nav">Pokedex</router-link>
+                              <router-link v-bind:to="'/generation'" class="titles-nav">Générations</router-link>
+                              <router-link v-bind:to="'/monpokemon'" class="titles-nav">Mon Pokemon</router-link>
+                          </li>
                         </ul>
                 </nav>
                 <h1>Voici les 7 Générations</h1>
@@ -21,7 +21,7 @@
                     <li>
                         <router-link v-bind:to="'/pokedex'" class="titles-nav">Pokedex</router-link>
                         <router-link v-bind:to="'/generation'" class="titles-nav">Générations</router-link>
-                        <router-link v-bind:to="'/team'" class="titles-nav">Team</router-link>
+                        <router-link v-bind:to="'/monpokemon'" class="titles-nav">Mon Pokemon</router-link>
                     </li>
                 </ul>
             </nav><br><br>

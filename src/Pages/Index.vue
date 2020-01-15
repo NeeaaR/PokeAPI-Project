@@ -6,7 +6,7 @@
                   <li>
                       <router-link v-bind:to="'/pokedex'" class="titles-nav">Pokedex</router-link>
                       <router-link v-bind:to="'/generation'" class="titles-nav">Générations</router-link>
-                      <router-link v-bind:to="'/team'" class="titles-nav">Team</router-link>
+                      <router-link v-bind:to="'/monpokemon'" class="titles-nav">Mon Pokemon</router-link>
                   </li>
               </ul>
           </nav>
@@ -17,23 +17,34 @@
               <section id="form">
                 <p>Veuillez entrer un pseudo :</p><br>
                 <input v-model="pseudo" maxlength="16"><br><br>
+                <span>Vous nous rejoignez le {{ time_display }}</span>
               </section>
           </div>
       </div>
 </template>
 
 <script>
-          
+import moment from 'moment'
 export default {
     name: 'app',
     el: '#app',
     data() {
         return{
-            pseudo: ''
+            pseudo: '',
+            moment: moment,
+            time_display: '',
         }
-    }
+    },
+methods: {
+  TimeSet() {
+    moment.locale('fr')
+    this.time_display = moment().format('Do MMMM YYYY à h:mm:ss a')
+  },
+},
+mounted() {
+  this.TimeSet()
 }
-
+}
 </script>
     
 <style scoped>
